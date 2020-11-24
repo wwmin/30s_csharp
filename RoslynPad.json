@@ -1,0 +1,20 @@
+{
+  "SendErrors": false,
+  "EnableBraceCompletion": true,
+  "LatestVersion": "15.1",
+  "WindowBounds": "291.2,73.60000000000001,795.2,679.2",
+  "DockLayout": "<LayoutRoot>\r\n  <RootPanel Orientation=\"Horizontal\">\r\n    <LayoutAnchorablePane Id=\"a1591234-21ee-4869-8dd2-d1b833bb6572\" Name=\"Documents\" DockWidth=\"200\" />\r\n    <LayoutDocumentPane Id=\"ce45db14-bbd9-45fe-acbb-c89018020101\">\r\n      <LayoutDocument IsSelected=\"True\" IsLastFocusedDocument=\"True\" LastActivationTimeStamp=\"11/05/2020 10:35:50\" />\r\n    </LayoutDocumentPane>\r\n  </RootPanel>\r\n  <TopSide />\r\n  <RightSide />\r\n  <LeftSide>\r\n    <LayoutAnchorGroup PreviousContainerId=\"a1591234-21ee-4869-8dd2-d1b833bb6572\">\r\n      <LayoutAnchorable CanHide=\"False\" AutoHideWidth=\"200\" AutoHideMinWidth=\"100\" AutoHideMinHeight=\"100\" Title=\"Documents\" ContentId=\"DocumentTree\" CanClose=\"False\" CanFloat=\"False\" LastActivationTimeStamp=\"11/05/2020 10:35:42\" />\r\n    </LayoutAnchorGroup>\r\n  </LeftSide>\r\n  <BottomSide />\r\n  <Hidden />\r\n</LayoutRoot>",
+  "WindowState": "Normal",
+  "EditorFontSize": 14.0,
+  "DocumentPath": "D:\\data\\code",
+  "SearchFileContents": false,
+  "SearchUsingRegex": false,
+  "OptimizeCompilation": true,
+  "LiveModeDelayMs": 2000,
+  "SearchWhileTyping": false,
+  "DefaultPlatformName": "",
+  "WindowFontSize": null,
+  "FormatDocumentOnComment": true,
+  "EffectiveDocumentPath": "D:\\data\\code",
+  "HasErrors": false
+}

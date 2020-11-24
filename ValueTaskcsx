@@ -1,0 +1,13 @@
+ValueTask<int> Foo()
+{
+    return ValueTask.FromResult(1);
+}
+
+async ValueTask<int> Caller()
+{
+    return await Foo();
+}
+
+var i = await Caller();
+
+i.Dump();
