@@ -31,9 +31,10 @@ static List<Student> students = new List<Student>
 //创建查询
 IEnumerable<string> studentQuery =
     from student in students
-    where student?.Scores?[0] > 90 && student.Scores[3] < 80
-    orderby student.Last ascending//修改查询 排序
-    select student.First +":"+ student.Last;//投影或映射
+    where student?.Scores?[0] > 10 && student.Scores[3] < 100
+    let sum = student.Scores!.Sum()
+    orderby student.First ascending, sum descending//修改查询 排序, ','逗号跟的是次要排序,相当于ThenBy
+    select student.First + ":" + student.Last + ":" + sum;//投影或映射
 //执行查询
 "studentQuery".Dump("studentQuery");
 string.Join("\n", studentQuery).Dump();
@@ -98,7 +99,7 @@ void ShowSpecialInfo<T>(IEnumerable<IGrouping<T, Student>> group) where T : clas
 
 
 //OrderBy 是主要排序, ThenBy是次要排序
-IEnumerable<Student> queryStudentByOrder = students.Where(p=>p.First!.StartsWith("a")).OrderByDescending(s => s.ID).ThenBy(p => p.Scores!.Sum());
+IEnumerable<Student> queryStudentByOrder = students.Where(p => p.First!.StartsWith("a")).OrderByDescending(s => s.ID).ThenBy(p => p.Scores!.Sum());
 string.Join('-', queryStudentByOrder).Dump();
 
 
