@@ -65,6 +65,17 @@ var studentQuery4 =
 var studentQuery5 =
     from student in students
     group student by new { id = student.ID, name = student.First };
+//对分组执行子查询
+var studentQuery6 =
+    from student in students
+    group student by student.First into studentGroup
+    select new
+    {
+        name = studentGroup.Key,
+        HighestScore = (from student2 in studentGroup
+                        select student2.Scores?.Max()).Max()
+    };
+//显示结果
 ShowInfo(studentQuery2);
 "studentQuery3".Dump("studentQuery3");
 ShowInfo(studentQuery3);
@@ -72,6 +83,58 @@ ShowInfo(studentQuery3);
 ShowInfo(studentQuery4);
 "studentQuery5".Dump("studentQuery5");
 ShowSpecialInfo(studentQuery5);
+//每组里取最高分
+studentQuery6.Select(p => p.name + ":" + p.HighestScore).Dump("studentQuery6");
+//使用SelectMany返回铺平之后的结果
+var studentQuery7 = studentQuery2.Select(p => p.Select(x => x)).SelectMany(p => p);
+string.Join('\n', studentQuery7).Dump("studentQuery7");
+
+//OrderBy 是主要排序, ThenBy是次要排序
+IEnumerable<Student> queryStudentByOrder = students.Where(p => p.First!.StartsWith("a")).OrderByDescending(s => s.ID).ThenBy(p => p.Scores!.Sum());
+string.Join('-', queryStudentByOrder).Dump();
+
+
+//集运算 : Distinct,Except,Intersect,Union
+//1. Distinct 去重,只保留一个相同项
+string[] planets = { "Mercury", "Venus", "Venus", "Earth", "Mars", "Earth" };
+string.Join(',', planets.Distinct()).Dump("Distinct");
+
+//2. Except 差集,位于一个集合但不位于另一个集合的元素
+string[] planets1 = { "Mercury", "Venus", "Earth", "Jupiter" };
+string[] planets2 = { "Mercury", "Earth", "Mars", "Jupiter" };
+string.Join(',', planets1.Except(planets2)).Dump("Except");
+
+//3. Intersect 交集,同时出现再两个集合中的元素
+string.Join(',', planets1.Intersect(planets2)).Dump("Intersect");
+
+//4. Union  联合, 位于两个集合中任一集合的唯一的元素
+string.Join(',', planets1.Union(planets2)).Dump("Union");
+
+int[] nums = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+//限定符运算: All,Any,Contains
+//1. All
+nums.All(p => p > 0).Dump("All");
+//2. Any
+nums.Any(p => p >= 9).Dump("Any");
+//3. Contains
+nums.Contains(1).Dump("Contains");
+
+//数据分区: Skip,SkipWhile,Take,TakeWhile
+//1. Skip
+string.Join(',', nums.Skip(1)).Dump("Skip");
+//2. SkipWhile
+string.Join(',', nums.SkipWhile((p, i) => p > 2 && i > 4)).Dump("SkipWhile");
+
+int[] amounts = { 5000, 2500, 9000, 8000, 6500, 4000, 1500, 5500 };
+var query = amounts.SkipWhile((amount, index) =>
+{
+    amount.Dump();
+    return amount > 5000;
+});
+string.Join(',', query).Dump();
+//amounts.SkipWhile(a=>a>5000).ToList().Dump();
+
+
 //显示信息
 void ShowInfo<T>(IEnumerable<IGrouping<T, Student>> group) where T : IEquatable<T> //此处为演示T的类型为值类型
 {
@@ -96,10 +159,3 @@ void ShowSpecialInfo<T>(IEnumerable<IGrouping<T, Student>> group) where T : clas
         }
     }
 }
-
-
-//OrderBy 是主要排序, ThenBy是次要排序
-IEnumerable<Student> queryStudentByOrder = students.Where(p => p.First!.StartsWith("a")).OrderByDescending(s => s.ID).ThenBy(p => p.Scores!.Sum());
-string.Join('-', queryStudentByOrder).Dump();
-
-
