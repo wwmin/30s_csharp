@@ -217,3 +217,52 @@ Task<int> GetPrimeNumber()
     }
 
 }
+
+
+//task 执行方式
+{
+    List<Task> tasks = new List<Task>();
+    TaskFactory taskFactory = new TaskFactory();
+    for (int i = 0; i < 5; i++)
+    {
+        tasks.Add(taskFactory.StartNew(new Action(() =>
+       {
+           Thread.Sleep(new Random().Next(0, 1000));
+           $"方式1，线程ID为{Thread.CurrentThread.ManagedThreadId}".Dump();
+       })));
+    }
+    Task.WaitAny(tasks.ToArray());//同步阻塞方式
+    Console.WriteLine("task wait any");
+    await Task.WhenAll(tasks);
+}
+{
+    List<Task> tasks = new List<Task>();
+    TaskFactory taskFactory = new TaskFactory();
+    for (int i = 0; i < 5; i++)
+    {
+        tasks.Add(taskFactory.StartNew(new Action<object?>(t =>
+        {
+            Thread.Sleep(new Random().Next(0, 1000));
+            string value = GetValue((int)t!);
+            $"方式2，线程ID为{Thread.CurrentThread.ManagedThreadId:00},参数为:{t:00}|{value:00}".Dump();
+        }), i));
+    }
+    await Task.WhenAll(tasks);
+}
+{
+    List<Task> tasks = new List<Task>();
+    for (int i = 0; i < 5; i++)
+    {
+        tasks.Add(Task.Run(new Action(() =>
+        {
+            Thread.Sleep(new Random().Next(0, 1000));
+            $"方式3，线程ID为{Thread.CurrentThread.ManagedThreadId}".Dump();
+        })));
+    }
+    await Task.WhenAll(tasks);
+}
+
+string GetValue(int i)
+{
+    return i.ToString();
+}

@@ -5,7 +5,7 @@ using FluentEmail;
 using FluentEmail.Core;
 using FluentEmail.Smtp;
 string myEmailAddress = "wwei.min@163.com";
-string myEmailSmtpPassword = "";//从163中开启Smtp服务并新增授权密码
+string myEmailSmtpPassword = "KISSOWAUZTENWMLL";//从163中开启Smtp服务并新增授权密码
 string toEmailAddress = "294134540@qq.com";
 SmtpClient smtp = new SmtpClient
 {
