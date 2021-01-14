@@ -27,10 +27,10 @@ var watch = new Stopwatch();
 //通过API创建表达式树
 //简单创建 num => num < 5
 {
-    ParameterExpression numParam = Expression.Parameter(typeof(int),"num");
-    ConstantExpression five = Expression.Constant(5,typeof(int));
-    BinaryExpression numLessThanFive = Expression.LessThan(numParam,five);
-    Expression<Func<int,bool>> lambda = Expression.Lambda<Func<int,bool>>(numLessThanFive,new ParameterExpression[]{numParam});
+    ParameterExpression numParam = Expression.Parameter(typeof(int), "num");
+    ConstantExpression five = Expression.Constant(5, typeof(int));
+    BinaryExpression numLessThanFive = Expression.LessThan(numParam, five);
+    Expression<Func<int, bool>> lambda = Expression.Lambda<Func<int, bool>>(numLessThanFive, new ParameterExpression[] { numParam });
     lambda.Dump();
     lambda.Compile()(4).Dump("简单创建");
 }
@@ -145,4 +145,18 @@ private PropertyInfo _propertyInfo;
     watch.Elapsed.Ticks.Dump("run directly elapsed");
     watch.Reset();
     claptrap.Level.Dump();
+}
+
+//------------------------------------------------------------------------------------------------//
+BlockExpression blockExpr = Expression.Block(Expression.Call(
+null,
+typeof(Console).GetMethod("Write", new Type[] { typeof(String) }),
+Expression.Constant("Hello ")
+),
+Expression.Constant(42)
+);
+var result = Expression.Lambda<Func<int>>(blockExpr).Compile()();
+foreach (var expr in blockExpr.Expressions)
+{
+    Console.WriteLine(expr.ToString());
 }

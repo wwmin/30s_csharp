@@ -159,3 +159,14 @@ void ShowSpecialInfo<T>(IEnumerable<IGrouping<T, Student>> group) where T : clas
         }
     }
 }
+
+
+//zip
+string[] s1 = new string[] { "zero", "one", "two" };
+string[] s2 = new string[] { "0", "1", "2" };
+
+s1.Zip(s2, (a, b) => new { key = a, value = b }).Dump();//[{key:zero,value:0},{key:one,value:1},{key:two,value:2}]
+
+//Aggregate 自定义对集合元素的两个值的操作
+int[] ints = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+ints.Aggregate((a, b) => a + b).Dump();
