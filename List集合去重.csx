@@ -104,3 +104,11 @@ public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TS
 }
 var distinctPersonWithLinqMore = persons.DistinctBy(p => p.Name);
 distinctPersonWithLinqMore.Dump("distinctPersonWithLinqMore");//ww 1 , ll 2
+
+
+//比较值类型List
+var intList1 = new List<int> { 1, 2, 3 };
+var intList2 = new List<int> { 3, 2, 1 };
+(intList1 == intList2).Dump("List1 == List2");//false
+var s = intList1.Except(intList2);
+s.Count().Dump("Except");//count => 0
