@@ -237,18 +237,22 @@ public class TestBindMember
 {
     public int Num { get; set; }
 }
-var variableBindExpr = Expression.Parameter(typeof(int), "number");
-var newTestBindMember = Expression.New(typeof(TestBindMember));
-//MemberInfo testBindMemberInfo = testBindMember.GetType().GetMember("Num").FirstOrDefault()!;
-var bindsExpr = new[] {
-    Expression.Bind(typeof(TestBindMember).GetProperty("Num")!,variableBindExpr)
-};
-var bindsBody = Expression.MemberInit(newTestBindMember, bindsExpr);
-var bindsFunc = Expression.Lambda<Func<int, TestBindMember>>(bindsBody, new[] { variableBindExpr }).Compile();
-bindsBody.ToString().Dump();//new TestBindMember() {Num = number}
-var testBindMember = bindsFunc(1111);
-Console.WriteLine(testBindMember.GetType() == typeof(TestBindMember));//True
-testBindMember.Num.Dump();//111
+void BindSample()
+{
+    var variableBindExpr = Expression.Parameter(typeof(int), "number");
+    var newTestBindMember = Expression.New(typeof(TestBindMember));
+    //MemberInfo testBindMemberInfo = testBindMember.GetType().GetMember("Num").FirstOrDefault()!;
+    var bindsExpr = new[] {
+        Expression.Bind(typeof(TestBindMember).GetProperty("Num")!,variableBindExpr)
+    };
+    var bindsBody = Expression.MemberInit(newTestBindMember, bindsExpr);
+    var bindsFunc = Expression.Lambda<Func<int, TestBindMember>>(bindsBody, new[] { variableBindExpr }).Compile();
+    bindsBody.ToString().Dump();//new TestBindMember() {Num = number}
+    var testBindMember = bindsFunc(1111);
+    Console.WriteLine(testBindMember.GetType() == typeof(TestBindMember));//True
+    testBindMember.Num.Dump();//111
+}
+BindSample();
 
 
 //Block    创建一个 BlockExpression。当执行块表达式时，它将返回块中最后一个表达式的值
@@ -648,4 +652,108 @@ void LambdaSample()
 }
 LambdaSample();
 
-//LeftShift  创建一个表示按位左移运算的 BinaryExpression。
+//LeftShift  创建一个表示按位左移(<<)运算的 BinaryExpression。
+//按位左移:将第一个操作数向左移动第二个操作数指定的位数，空出的位置补0。
+//解释:左移相当于乘. 左移一位相当于乘2;左移两位相当于乘4;左移三位相当于乘8。x<<1=x*2
+//同理:右移相当于整除. 右移一位相当于除以2;右移两位相当于除以4;右移三位相当于除以8。x>>1=x/2
+
+void LeftShiftSample()
+{
+    ParameterExpression paramExpr = Expression.Parameter(typeof(int), "arg");
+    ParameterExpression paramExpr2 = Expression.Parameter(typeof(int), "num");
+    LambdaExpression lambdaExpr = Expression.Lambda(
+        Expression.LeftShift(
+            paramExpr,
+            paramExpr2
+        ),
+        new List<ParameterExpression>() { paramExpr, paramExpr2 }
+     );
+    lambdaExpr.ToString().Dump();//(arg, num) => (arg << num)
+    lambdaExpr.Compile().DynamicInvoke(1, 2).Dump("LeftShift");//4
+}
+LeftShiftSample();
+
+//LeftShiftAssign    创建一个表示按位左移赋值(<<=)运算的 BinaryExpression。
+void LeftShiftAssignSample()
+{
+    ParameterExpression varsample = Expression.Variable(typeof(int), "sampleVar");
+    Expression assignExpr = Expression.Assign(varsample, Expression.Constant(1));
+    Expression exclusiveOrAssignExpr = Expression.LeftShiftAssign(varsample, Expression.Constant(3));
+    exclusiveOrAssignExpr.ToString().Dump();//(sampleVar <<= 3)
+    var blockExpr = Expression.Block(new ParameterExpression[] { varsample }, assignExpr, exclusiveOrAssignExpr);
+    Expression.Lambda<Func<int>>(blockExpr).Compile()().Dump("LeftShiftAssign");//8
+}
+LeftShiftAssignSample();
+
+//LessThan   创建一个表示“小于”数值比较的 BinaryExpression。
+void LessThanSample()
+{
+    //静态编译方式
+    Expression lessThanExpr = Expression.LessThan(
+        Expression.Constant(42),
+        Expression.Constant(42)
+    );
+    Expression.Lambda<Func<bool>>(lessThanExpr).Compile()().Dump("LessThan");//false
+
+    //动态参数方式
+    ParameterExpression paramNum1 = Expression.Parameter(typeof(int), "num1");
+    ParameterExpression paramNum2 = Expression.Parameter(typeof(int), "num2");
+    LambdaExpression lambdaExpr = Expression.Lambda(
+        Expression.LessThan(
+            paramNum1,
+            paramNum2
+        ),
+        new List<ParameterExpression>() { paramNum1, paramNum2 }
+     );
+    lambdaExpr.ToString().Dump();//(num1, num2) => (num1 < num2)
+    lambdaExpr.Compile().DynamicInvoke(1, 3).Dump("LessThanDynamic");//true
+}
+LessThanSample();
+
+//LessThanOrEqual      创建一个表示“小于或等于”数值比较的 BinaryExpression。
+void LessThanOrEqualSample()
+{
+    //静态编译方式
+    Expression lessThanExpr = Expression.LessThanOrEqual(
+        Expression.Constant(42),
+        Expression.Constant(42)
+    );
+    Expression.Lambda<Func<bool>>(lessThanExpr).Compile()().Dump("LessThan");//true
+
+    //动态参数方式
+    ParameterExpression paramNum1 = Expression.Parameter(typeof(int), "num1");
+    ParameterExpression paramNum2 = Expression.Parameter(typeof(int), "num2");
+    LambdaExpression lambdaExpr = Expression.Lambda(
+        Expression.LessThanOrEqual(
+            paramNum1,
+            paramNum2
+        ),
+        new List<ParameterExpression>() { paramNum1, paramNum2 }
+     );
+    lambdaExpr.ToString().Dump();//(num1, num2) => (num1 <= num2)
+    lambdaExpr.Compile().DynamicInvoke(1, 3).Dump("LessThanDynamic");//true
+}
+LessThanOrEqualSample();
+
+//ListBind
+class TestListBindClass
+{
+    public int num1 { get; set; }
+    public int num2 { get; set; }
+}
+void BindSample()
+{
+    var variableBindExpr = Expression.Parameter(typeof(int), "number");
+    var newTestBindMember = Expression.New(typeof(TestBindMember));
+    //MemberInfo testBindMemberInfo = testBindMember.GetType().GetMember("Num").FirstOrDefault()!;
+    var bindsExpr = new[] {
+        Expression.ListBind(typeof(TestListBindClass).GetProperty("Num")!,variableBindExpr)
+    };
+    var bindsBody = Expression.MemberInit(newTestBindMember, bindsExpr);
+    var bindsFunc = Expression.Lambda<Func<int, TestBindMember>>(bindsBody, new[] { variableBindExpr }).Compile();
+    bindsBody.ToString().Dump();//new TestBindMember() {Num = number}
+    var testBindMember = bindsFunc(1111);
+    Console.WriteLine(testBindMember.GetType() == typeof(TestBindMember));//True
+    testBindMember.Num.Dump();//111
+}
+BindSample();
