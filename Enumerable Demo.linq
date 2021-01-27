@@ -223,10 +223,10 @@ public static class Utils
 	public static TSource TryGetFirst<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, out bool found)
 	{
 		//    IOrderedEnumerable<TSource> orderedEnumerable = source as IOrderedEnumerable<TSource>;
-		if (source is IOrderedEnumerable<TSource> orderedEnumerable)
-		{
-			return orderedEnumerable.TryGetFirst(predicate, out found);
-		}
+		//if (source is IOrderedEnumerable<TSource> orderedEnumerable)
+		//{
+		//	return orderedEnumerable.TryGetFirst(predicate, out found);
+		//}
 		foreach (TSource item in source)
 		{
 			if (predicate(item))
