@@ -1,6 +1,7 @@
 <Query Kind="Statements">
   <Output>DataGrids</Output>
   <Namespace>System.Threading.Tasks</Namespace>
+  <Namespace>System.Security.Cryptography</Namespace>
 </Query>
 
 //文件操作
@@ -40,10 +41,10 @@ if (Directory.Exists(tempFilePath))
 //获取当前文件路径
 Directory.GetCurrentDirectory().Dump("GetCurrentDirectory");
 //遍历指定路径下所有文件夹
-var allDirs=Directory.GetDirectories(tempFilePath,"*",SearchOption.AllDirectories);
+var allDirs = Directory.GetDirectories(tempFilePath, "*", SearchOption.AllDirectories);
 allDirs.Dump("AllDires");
 //遍历当前文件夹下所有文件
-var allFiles=Directory.GetFiles(tempFilePath,"*.*",SearchOption.AllDirectories);
+var allFiles = Directory.GetFiles(tempFilePath, "*.*", SearchOption.AllDirectories);
 allFiles.Dump("AllFiles");
 //文件夹和文件同时遍历
 var allDireAndFileList = allDirs.Union(allFiles).OrderBy(d => d);
@@ -97,6 +98,9 @@ while (string.IsNullOrWhiteSpace(readPath))
 		Console.WriteLine("文件路径：" + Path.GetDirectoryName(readPath));
 	}
 }
+
+string.Join(",", Path.GetInvalidPathChars()).Dump(nameof(Path.GetInvalidPathChars));
+string.Join(",", Path.GetInvalidFileNameChars()).Dump(nameof(Path.GetInvalidFileNameChars));
 
 
 
@@ -170,7 +174,6 @@ using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.OpenO
 }
 
 
-
 //BinaryReader 读取二进制文件
 using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 {
@@ -212,4 +215,107 @@ using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open,
 	fs.Read(bytes, 0, Convert.ToInt32(fs.Length));
 	string str = Encoding.Default.GetString(bytes);//将字节数组转为字符串
 	str.Dump("Read Write");
+}
+
+/****************************************文件帮助类*****************************************/
+{
+	var dirName = @"D:/data/db/";
+	if (!File.Exists(dirName + "Eletcric_2_20210116.bak")) return;
+	using (FileStream fs = new FileStream(dirName + "Eletcric_2_20210116.bak", FileMode.Open, FileAccess.Read))
+	{
+		fs.CopyToFile(dirName + "1.bak");
+		fs.GetFileMD5().Dump(nameof(FileUtil.GetFileMD5)); ;
+	}
+}
+
+
+//文件帮助类
+public static class FileUtil
+{
+	/// <summary>
+	/// 以文件流的形式复制大文件
+	/// </summary>
+	/// <param name="fs">源</param>
+	/// <param name="dest">目标地址</param>
+	/// <param name="bufferSize">缓冲区大小，默认8MB</param>
+	public static void CopyToFile(this Stream fs, string dest, int bufferSize = 1024 * 8 * 1024)
+	{
+		using var fsWriter = new FileStream(dest, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+		byte[] buf = new byte[bufferSize];
+		int len;
+		while ((len = fs.Read(buf, 0, buf.Length)) != 0)
+		{
+			fsWriter.Write(buf, 0, len);
+		}
+	}
+
+	/// <summary>
+	/// 以文件流的形式复制大文件(异步方式)
+	/// </summary>
+	/// <param name="fs">源</param>
+	/// <param name="dest">目标地址</param>
+	/// <param name="bufferSize">缓冲区大小，默认8MB</param>
+	public static async void CopyToFileAsync(this Stream fs, string dest, int bufferSize = 1024 * 8 * 1024)
+	{
+		using var fsWriter = new FileStream(dest, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+		byte[] buf = new byte[bufferSize];
+		int len;
+		await Task.Run(() =>
+		{
+			while ((len = fs.Read(buf, 0, buf.Length)) != 0)
+			{
+				fsWriter.Write(buf, 0, len);
+			}
+		}).ConfigureAwait(true);
+	}
+
+
+	/// <summary>
+	/// 将内存流转储成文件
+	/// </summary>
+	/// <param name="ms"></param>
+	/// <param name="filename"></param>
+	public static void SaveFile(this MemoryStream ms, string fileName)
+	{
+		using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+		byte[] buffer = ms.ToArray();//转化为byte格式存储
+		fs.Write(buffer, 0, buffer.Length);
+		fs.Flush();
+	}
+
+	/// <summary>
+	/// 计算文件的 MD5 值
+	/// </summary>
+	/// <param name="fs">源文件流</param>
+	/// <returns>MD5 值16进制字符串</returns>
+	public static string GetFileMD5(this FileStream fs) => HashFile(fs, "md5");
+	/// <summary>
+	/// 计算文件的 sha1 值
+	/// </summary>
+	/// <param name="fs">源文件流</param>
+	/// <returns>sha1 值16进制字符串</returns>
+	public static string GetFileSha1(this Stream fs) => HashFile(fs, "sha1");
+
+	/// <summary>
+	/// 计算文件的哈希值
+	/// </summary>
+	/// <param name="fs">被操作的源数据流</param>
+	/// <param name="algo">加密算法</param>
+	/// <returns>哈希值16进制字符串</returns>
+	private static string HashFile(Stream fs, string algo)
+	{
+		HashAlgorithm crypto = algo switch
+		{
+			"sha1" => new SHA1CryptoServiceProvider(),
+			_ => new MD5CryptoServiceProvider(),
+		};
+		byte[] retVal = crypto.ComputeHash(fs);
+
+		StringBuilder sb = new StringBuilder();
+		foreach (var t in retVal)
+		{
+			sb.Append(t.ToString("x2"));
+		}
+		return sb.ToString();
+	}
 }
