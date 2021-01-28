@@ -12,6 +12,8 @@ driveInfos.Dump("driveInfos");
 DriveInfo driveInfo = new DriveInfo("D");
 driveInfo.Dump("driveInfo");
 
+
+
 //DirectoryInfo 文件夹操作
 //创建文件夹
 var tempFilePath = @"D:/temp" + DateTime.Today.ToFileTime();
@@ -26,6 +28,9 @@ dirs.Dump("IEnumerable<DirectoryInfo>");
 //await Task.Delay(3000);
 //await Task.Run(() => directoryInfo.Delete(true));//查看文件夹被创建,且3秒后被删除
 
+
+
+
 //Directory 静态类与DirectoryInfo类似
 //判断文件夹是否存在
 if (Directory.Exists(tempFilePath))
@@ -34,6 +39,17 @@ if (Directory.Exists(tempFilePath))
 }
 //获取当前文件路径
 Directory.GetCurrentDirectory().Dump("GetCurrentDirectory");
+//遍历指定路径下所有文件夹
+var allDirs=Directory.GetDirectories(tempFilePath,"*",SearchOption.AllDirectories);
+allDirs.Dump("AllDires");
+//遍历当前文件夹下所有文件
+var allFiles=Directory.GetFiles(tempFilePath,"*.*",SearchOption.AllDirectories);
+allFiles.Dump("AllFiles");
+//文件夹和文件同时遍历
+var allDireAndFileList = allDirs.Union(allFiles).OrderBy(d => d);
+allDireAndFileList.Dump(nameof(allDireAndFileList));
+
+
 
 //FileInfo 类 文件操作
 Directory.CreateDirectory(tempFilePath);
@@ -44,6 +60,9 @@ if (!fileInfo.Exists)
 }
 fileInfo.Attributes = FileAttributes.Normal;//设置文件属性
 fileInfo.CopyTo(@"D:\test2021.1.1.txt", true);
+
+
+
 
 //File 静态类, 文件操作, 功能类似与FileInfo
 if (File.Exists(@"D:\test2021.1.1.txt"))
@@ -60,6 +79,10 @@ using (FileStream fs = File.Open(tempFilePath + "/test.txt", FileMode.OpenOrCrea
 	sw.Write(stringData);
 	sw.WriteLine();
 }
+
+
+
+
 //Path 静态类, 文件按路径操作
 Console.WriteLine("请输入一个文件路径：");
 string readPath = @"D:\temp";//string.Empty;
@@ -146,6 +169,8 @@ using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.OpenO
 	fs.Close();
 }
 
+
+
 //BinaryReader 读取二进制文件
 using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 {
@@ -170,6 +195,9 @@ using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open,
 	string str = Encoding.Default.GetString(bytes);//将字节数组转为字符串
 	str.Dump("Read(bytes,0,length)");
 }
+
+
+
 
 //BinaryWriter 写入二进制文件
 using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
