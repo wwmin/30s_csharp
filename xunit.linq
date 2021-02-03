@@ -4,7 +4,7 @@
   <Namespace>Xunit</Namespace>
 </Query>
 
-// This query can be #load-ed into other queries for xunit test support. *V=1.1*
+// This query can be #load-ed into other queries for xunit test support. *V=1.2*
 // You can modify the code to customize the xunit test runner behavior.
 
 void Main()

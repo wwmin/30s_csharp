@@ -16,8 +16,9 @@ void Main()
 {
 	Util.AutoScrollResults = true;
 	//var summary = BenchmarkRunner.Run(typeof().Assembly);
-	//var summary = BenchmarkRunner.Run(typeof(Test));
-	var summary = BenchmarkRunner.Run<Md5VsSha256>();
+	var summary = BenchmarkRunner.Run(typeof(Test));
+	//var summary = BenchmarkRunner.Run<Md5VsSha256>();
+	var testListStructure = BenchmarkRunner.Run<ListCtor>();
 }
 
 public class HashAndMD5
@@ -100,4 +101,22 @@ public class Md5VsSha256
 
     [Benchmark]
     public byte[] Md5() => md5.ComputeHash(data);
+}
+
+[MaxColumn]
+[MinColumn]
+[MemoryDiagnoser]
+public class ListCtor{
+
+	[Params(10000)]
+	public int initNum = default;
+	public void TestListWithNoNum()
+	{
+		new List<int>() {};
+	}
+
+	public void TestListWithNum()
+	{
+		new List<int>(initNum) {};
+	}
 }

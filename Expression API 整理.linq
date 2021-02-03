@@ -491,6 +491,8 @@ void Main()
 		Expression.Lambda<Func<int>>(blockExpr).Compile()().Dump();//6
 	}
 	ExclusiveOrAssignSample();
+	
+	//创建一个表示访问字段的 MemberExpression。
 	void FieldSample()
 	{
 		TestFieldClass obj = new TestFieldClass();
