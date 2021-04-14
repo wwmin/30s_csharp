@@ -20,7 +20,12 @@ void Main(string[] args)
 	//AppendTest();
 	//AppendManyTest();
 	//PrependTest();
-	AppendTwoAccumulatorTest();
+	//AggregateTwoAccumulatorTest();
+	//AggregateRightTest();
+	//AssertTest();
+	//AssertCountTest();
+	CountDownTest();
+	//BackSertTest();
 }
 
 //获取26个字母表
@@ -129,7 +134,7 @@ void AppendManyTest()
 	res.Dump();
 }
 
-void AppendTwoAccumulatorTest()
+void AggregateTwoAccumulatorTest()
 {
 	var a = new[] { 1, 2 };
 	var res = a.Aggregate(1, (x, y) => x + y, 2, (x, y) => x * y, (x, y) => x * y);
@@ -137,6 +142,15 @@ void AppendTwoAccumulatorTest()
 	res.Dump();
 }
 
+void AggregateRightTest()
+{
+	var num = Enumerable.Range(1, 5).Select(i => i.ToString());
+	//字符窜内插值大括号：使用两个{{、}}，参考：https://docs.microsoft.com/zh-cn/dotnet/standard/base-types/composite-formatting#escaping-braces
+	string result = num.Aggregate((a, b) => $"{{{a}}}/{{{b}}}");//从前向后叠加
+	result.Dump("Aggregate");//{{{{1}/{2}}/{3}}/{4}}/{5}
+	string resultRight = num.AggregateRight((a, b) => $"{{{a}}}/{{{b}}}");//从后向前叠加
+	resultRight.Dump("AggregateRightTest");//{1}/{{2}/{{3}/{{4}/{5}}}}
+}
 //以固定位数,转换string
 void ToStringWithFixedNum()
 {
@@ -188,11 +202,38 @@ class Disposable : IDisposable
 }
 sealed class TestException : System.Exception { };
 
+void AssertTest()
+{
+	var a = new[] { 2, 4, 6, 8, 9 };
+	a.Assert(x => x % 2 == 0, x => new Exception("存在不符合的数据")).Dump();
+}
+
+void AssertCountTest()
+{
+	var nums = Enumerable.Range(0, 2);
+	nums.AssertCount(10, (cmp, count) => new Exception($"出现异常：cmp={cmp},count={count}")).Dump();//出现异常：cmp=-1,count=10
+}
+
+void BackSertTest()
+{
+	var nums = Enumerable.Range(0, 2);
+	nums.Backsert(new[] { 98, 99 }, 0).Dump();//0,1,98,99
+	nums.Backsert(new[] { 98, 99 }, 1).Dump();//0,98,99,1
+	nums.Backsert(new[] { 98, 99 }, 2).Dump();//98,99,0,1
+
+	//nums.Backsert(new[] { 98, 99 }, -1).Dump();//Error: Index cannot be negative. (Parameter 'index')
+	//nums.Backsert(new[] { 98, 99 }, 3).Dump();//Error: Insertion index is greater than the length of the first sequence. (Parameter 'index')
+}
+
+void CountDownTest()
+{
+	string.Join(",", Enumerable.Range(1, 10)).Dump();
+	string.Join(",", Enumerable.Range(1, 10).CountDown(5, (a, b) => a + b)).Dump();
+}
 //--------------------------------------------------------------------------------------------------------------------------------------//
 public static class MoreEnumerable
 {
-	public static TSource[] Acquire<TSource>(this IEnumerable<TSource> source)
-		  where TSource : IDisposable
+	public static TSource[] Acquire<TSource>(this IEnumerable<TSource> source) where TSource : IDisposable
 	{
 		if (source == null) throw new ArgumentNullException(nameof(source));
 
@@ -263,8 +304,7 @@ public static class MoreEnumerable
 		}
 	}
 
-	public static TResult Aggregate<T, TAccumulate1, TAccumulate2, TResult>(
-		   this IEnumerable<T> source,
+	public static TResult Aggregate<T, TAccumulate1, TAccumulate2, TResult>(this IEnumerable<T> source,
 		   TAccumulate1 seed1, Func<TAccumulate1, T, TAccumulate1> accumulator1,
 		   TAccumulate2 seed2, Func<TAccumulate2, T, TAccumulate2> accumulator2,
 		   Func<TAccumulate1, TAccumulate2, TResult> resultSelector)
@@ -303,6 +343,175 @@ public static class MoreEnumerable
 		}
 		return accumulator;
 	}
+
+	public static IEnumerable<TSource> Assert<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+	{
+		return Assert(source, predicate, null);
+	}
+	public static IEnumerable<TSource> Assert<TSource>(this IEnumerable<TSource> source,
+		   Func<TSource, bool> predicate, Func<TSource, Exception>? errorSelector = null)
+	{
+		if (source == null) throw new ArgumentNullException(nameof(source));
+		if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+		return _(); IEnumerable<TSource> _()
+		{
+			foreach (var element in source)
+			{
+				var success = predicate(element);
+				if (!success)
+					throw errorSelector?.Invoke(element) ?? new InvalidOperationException("Sequence contains an invalid item.");
+				yield return element;
+			}
+		}
+	}
+
+	static readonly Func<int, int, Exception> DefaultErrorSelector = OnAssertCountFailure;
+
+	static Exception OnAssertCountFailure(int cmp, int count)
+	{
+		var message = cmp < 0
+		   ? "Sequence contains too few elements when exactly {0} were expected."
+		   : "Sequence contains too many elements when exactly {0} were expected.";
+		return new SequenceException(string.Format(message, count.ToString("N0")));
+	}
+
+	public static IEnumerable<TSource> AssertCount<TSource>(this IEnumerable<TSource> source, int count, Func<int, int, Exception> errorSelector) =>
+			AssertCountImpl(source, count, errorSelector);
+
+	public static IEnumerable<TSource> AssertCount<TSource>(this IEnumerable<TSource> source, int count) =>
+		  AssertCountImpl(source, count, DefaultErrorSelector);
+
+	public static IEnumerable<TSource> AssertCountImpl<TSource>(IEnumerable<TSource> source, int count, Func<int, int, Exception> errorSelector)
+	{
+		if (source == null) throw new ArgumentNullException(nameof(source));
+		if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+		if (errorSelector == null) throw new ArgumentNullException(nameof(errorSelector));
+		return source.TryGetCollectionCount() is { } collectionCount
+		? collectionCount == count
+			? source
+			: From<TSource>(() => throw errorSelector(collectionCount.CompareTo(count), count))
+		: _();
+		IEnumerable<TSource> _()
+		{
+			var iterations = 0;
+			foreach (var element in source)
+			{
+				iterations++;
+				if (iterations > count)
+					throw errorSelector(1, count);
+				yield return element;
+			}
+			if (iterations != count)
+				throw errorSelector(-1, count);
+		}
+	}
+
+	public static int? TryGetCollectionCount<T>(this IEnumerable<T> source) => source switch
+	{
+		null => throw new ArgumentNullException(nameof(source)),
+		ICollection<T> collection => collection.Count,
+		IReadOnlyCollection<T> collection => collection.Count,
+		_ => null
+	};
+
+	public static IEnumerable<T> Backsert<T>(this IEnumerable<T> first, IEnumerable<T> second, int index)
+	{
+		if (first == null) throw new ArgumentNullException(nameof(first));
+		if (second == null) throw new ArgumentNullException(nameof(second));
+		if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), "Index cannot be negative.");
+
+		if (index == 0)
+			return first.Concat(second);
+
+		return _(); IEnumerable<T> _()
+		{
+			using var e = first.CountDown(index, ValueTuple.Create).GetEnumerator();
+
+			if (e.MoveNext())
+			{
+				var (_, countdown) = e.Current;
+				if (countdown is { } n && n != index - 1)
+					throw new ArgumentOutOfRangeException(nameof(index), "Insertion index is greater than the length of the first sequence.");
+
+				do
+				{
+					T a;
+					(a, countdown) = e.Current;
+					if (countdown == index - 1)
+					{
+						foreach (var b in second)
+							yield return b;
+					}
+
+					yield return a;
+				}
+				while (e.MoveNext());
+			}
+		}
+	}
+
+	public static IEnumerable<TResult> CountDown<T, TResult>(this IEnumerable<T> source,
+	   int count, Func<T, int?, TResult> resultSelector)
+	{
+		if (source == null) throw new ArgumentNullException(nameof(source));
+		if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+
+		return source.TryAsListLike() is { } listLike
+			   ? IterateList(listLike)
+			   : source.TryGetCollectionCount() is { } collectionCount
+				 ? IterateCollection(collectionCount)
+				 : IterateSequence();
+
+		IEnumerable<TResult> IterateList(IListLike<T> list)
+		{
+			var countdown = Math.Min(count, list.Count);
+
+			for (var i = 0; i < list.Count; i++)
+			{
+				var cd = list.Count - i <= count
+					   ? --countdown
+					   : (int?)null;
+				yield return resultSelector(list[i], cd);
+			}
+		}
+
+		IEnumerable<TResult> IterateCollection(int i)
+		{
+			foreach (var item in source)
+				yield return resultSelector(item, i-- <= count ? i : (int?)null);
+		}
+
+		IEnumerable<TResult> IterateSequence()
+		{
+			var queue = new Queue<T>(Math.Max(1, count + 1));
+
+			foreach (var item in source)
+			{
+				queue.Enqueue(item);
+				if (queue.Count > count)
+					yield return resultSelector(queue.Dequeue(), null);
+			}
+
+			while (queue.Count > 0)
+				yield return resultSelector(queue.Dequeue(), queue.Count);
+		}
+	}
+}
+
+public class SequenceException : Exception
+{
+	const string DefaultMessage = "Error in sequence.";
+	public SequenceException() :
+		 this(null)
+	{ }
+	public SequenceException(string? message) :
+		  this(message, null)
+	{ }
+
+	public SequenceException(string? message, Exception? innerException) :
+		 base(string.IsNullOrEmpty(message) ? DefaultMessage : message, innerException)
+	{ }
 }
 
 public abstract class PendNode<T> : IEnumerable<T>
@@ -404,12 +613,13 @@ public interface IListLike<out T>
 }
 public static class ListLike
 {
-	public static IListLike<T> ToListLike<T>(this IEnumerable<T> source) => source switch
+	public static IListLike<T> ToListLike<T>(this IEnumerable<T> source) => source.TryAsListLike() ?? new List<T>(source.ToList());
+	public static IListLike<T>? TryAsListLike<T>(this IEnumerable<T> source) => source switch
 	{
 		null => throw new ArgumentNullException(nameof(source)),
 		IList<T> list => new List<T>(list),
 		IReadOnlyList<T> list => new ReadOnlyList<T>(list),
-		_ => null!
+		_ => null
 	};
 
 	sealed class List<T> : IListLike<T>

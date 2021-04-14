@@ -15,6 +15,9 @@ async Task Main()
 		await Run();
 	}
 	{
+		await TestTaskMore();
+	}
+	{
 		Task<int> task = Task.Factory.StartNew(() =>
 		{
 			Thread.Sleep(100);
@@ -331,6 +334,56 @@ async Task Main()
 		}
 	}
 	#endregion
+}
+
+public async Task TestTaskMore()
+{
+	IProgress<int> progress = new Progress<int>(n =>
+{
+	$"当前进度: {n}%".Dump("进度报告");
+});
+
+	CancellationTokenSource ts = new CancellationTokenSource();
+	CancellationToken cancellationToken = ts.Token;
+
+	Task t = new Task(() =>
+	{
+		Thread.Sleep(1000);
+		"Hello,Task".Dump();
+	}, cancellationToken);
+
+	t.Status.Dump("Created");
+
+	t.Start();
+
+	//if you're writing app-level code, do not use ConfigureAwait(false)
+	//if you're writing general-purpose library code, use ConfigureAwait(false) 
+	await t.ConfigureAwait(true);
+	t.Status.Dump("Waiting");
+	await Task.WhenAny(new[]{ DoWork(progress, cancellationToken), t.ContinueWith(x => t.Status.Dump("Continue")).ContinueWith(x =>
+	{
+		Thread.Sleep(1000);
+		ts.Cancel();
+		ts.Token.IsCancellationRequested.Dump("ts");
+	})});
+
+	string.Join(Environment.NewLine, Enum.GetNames(typeof(TaskStatus))).Dump("TaskStatus");
+}
+
+public async Task<Task> DoWork(IProgress<int> progress, CancellationToken cancellationToken)
+{
+	int i = 0;
+	int max = 10;
+	while (!cancellationToken.IsCancellationRequested && i < max)
+	{
+		await Task.Yield();
+		Thread.Sleep(1000);
+		progress.Report((int)Math.Ceiling((double)(i + 1) / max * 100));
+		i++;
+	}
+	if (!cancellationToken.IsCancellationRequested) { return Task.CompletedTask; }
+
+	return Task.FromCanceled(cancellationToken);
 }
 
 public static class Util
