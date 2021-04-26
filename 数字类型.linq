@@ -22,3 +22,6 @@ Math.Round(d2,2).Dump("double");
 
 $"{Decimal.MinusOne},{Decimal.Zero},{Decimal.One},{Decimal.MinValue},{Decimal.MaxValue}".Dump("Decimal More");
 $"{Decimal.Multiply(4m,2m)}".Dump("Decimal.Multiply");
+
+var s=  "11";
+s.PadLeft(3,'0').Dump();//011
