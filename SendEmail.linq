@@ -1,4 +1,4 @@
-<Query Kind="Statements">
+<Query Kind="Program">
   <NuGetReference>FluentEmail.Core</NuGetReference>
   <NuGetReference>FluentEmail.Smtp</NuGetReference>
   <Namespace>System.Threading.Tasks</Namespace>

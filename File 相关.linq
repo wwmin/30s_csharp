@@ -117,6 +117,8 @@ using (StreamReader sr = new StreamReader(tempFilePath + "/test.txt"))
 	}
 }
 
+Path.GetRandomFileName().Dump();
+
 //StreamWriter类主要用于向流中写入数据 (会清空所有文本)
 //using (StreamWriter sw = new StreamWriter(tempFilePath + "/test.txt"))
 //{
