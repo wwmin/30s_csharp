@@ -9,16 +9,22 @@ void Main()
 	mc.RealName = "wwmin";
 	mc.Age = 11;
 	
-	Dictionary<string,object> objectAllFieldAndNames=new Dictionary<string, object>();
-	
+	List<string> objectNameTypeValueList= new List<string>();
+	#region 获取
 	//反射
 	Type t= mc.GetType();
 	//获取所有公共属性
 	PropertyInfo[] pArray = t.GetProperties();
 	Array.ForEach<PropertyInfo>(pArray, p => {
-		objectAllFieldAndNames.Add(p.Name,p.GetValue(mc));
+		objectNameTypeValueList.Add(p.Name+"|"+p.PropertyType.Name+"|"+p.GetValue(mc));
 	});
-	objectAllFieldAndNames.Dump("ObjectDictionary");
+	objectNameTypeValueList.Dump("ObjectInfoList");
+	#endregion
+	
+	#region 设置属性值
+	mc.GetType().GetProperty(nameof(mc.RealName)).SetValue(mc,"测试反射设置属性值");
+	mc.RealName.Dump("设置属性值");
+	#endregion
 }
 
 public class MyClass{
