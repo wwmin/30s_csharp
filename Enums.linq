@@ -12,7 +12,7 @@ void Main()
 
 		var allItems = EnumHelper.GetAllItems(typeof(RoleEnum));
 		string.Join(Environment.NewLine, allItems.Select(i => (string)i.Text)).Dump("RoleEnumName");
-		EnumHelper.GetDescriptionByName(RoleEnum.超级管理员).Dump();
+		RoleEnum.超级管理员.GetDescription().Dump();
 	}
 
 	{
@@ -58,8 +58,22 @@ void Main()
 	}
 }
 
-public class EnumHelper
+public static class EnumHelper
 {
+	/// <summary>
+	/// 	get enum description by name
+	/// </summary>
+	public static string GetDescription<T>(this T enumItemName) where T : IConvertible
+	{
+		if (enumItemName is null || enumItemName is not Enum) throw new ArgumentNullException(nameof(enumItemName));
+		FieldInfo fi = enumItemName.GetType().GetField(enumItemName.ToString());
+		DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+		if (attributes is not null && attributes.Length > 0)
+		{
+			return attributes[0].Description;
+		}
+		return enumItemName.ToString();
+	}
 	/// <summary>
 	/// get all infomation of enum ,include value name description
 	/// </summary>
@@ -95,23 +109,22 @@ public class EnumHelper
 		return list;
 	}
 
-	/// <summary>
-	/// 	get enum description by name
-	/// </summary>
-	public static string GetDescriptionByName<T>(T enumItemName)
-	{
-		if (enumItemName == null) throw new ArgumentNullException(nameof(enumItemName));
-		FieldInfo fi = enumItemName.GetType().GetField(enumItemName.ToString()!)!;
-		DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-		if (attributes != null && attributes.Length > 0)
-		{
-			return attributes[0].Description;
-		}
-		else
-		{
-			return enumItemName.ToString()!;
-		}
-	}
+	//public static string GetDescriptionByName<T>(T enumItemName)
+	//{
+	//	if (enumItemName == null) throw new ArgumentNullException(nameof(enumItemName));
+	//	FieldInfo fi = enumItemName.GetType().GetField(enumItemName.ToString()!)!;
+	//	DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+	//	if (attributes != null && attributes.Length > 0)
+	//	{
+	//		return attributes[0].Description;
+	//	}
+	//	else
+	//	{
+	//		return enumItemName.ToString()!;
+	//	}
+	//}
+
+
 }
 
 //Flags关键字允许我们在使用.net 枚举变量时,使用多个组合值
