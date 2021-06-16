@@ -118,7 +118,7 @@ void Main()
 	//2. SkipWhile
 	string.Join(',', nums.SkipWhile((p, i) => p > 2 && i > 4)).Dump("SkipWhile");
 	
-	int[] amounts = { 5000, 2500, 9000, 8000, 6500, 4000, 1500, 5500 };
+	int[] amounts = { 6000, 5000, 2500, 9000, 8000, 6500, 4000, 1500, 5500 };
 	var query = amounts.SkipWhile((amount, index) =>
 	{
 	    amount.Dump();
@@ -126,6 +126,11 @@ void Main()
 	});
 	string.Join(',', query).Dump();
 	//amounts.SkipWhile(a=>a>5000).ToList().Dump();
+
+	//实现字符串分组后按照一定规则再合并,where((a,b)=>b>1), 利用where的第二个参数数组的下标n
+	var paths = new List<string> {"/api/aa/1","/api/aa/2","/api/bb/1","/api/bb/2","/api/cc/1","/api/cc/2"};
+	var newPaths = paths.Select(p => string.Join("/",p.Split("/").Where((a,b)=>b>1))).ToList();
+	newPaths.Dump("newPaths by where((a,b)=>b>1)");
 	
 	
 	//显示信息
