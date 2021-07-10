@@ -2,7 +2,8 @@
   <Output>DataGrids</Output>
 </Query>
 
-DateTime.Now.ToUnixMillis().Dump();
+DateTime.Now.ToUnixMillis().Dump();//1625903158623
+DateTime.Now.ToDate().Dump();//2021-07-10 03:45:58
 
 public static class Util
 {
@@ -15,5 +16,12 @@ public static class Util
 		DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 		TimeSpan diff = date.ToUniversalTime() - origin;
 		return (long)diff.TotalMilliseconds;
+	}
+	
+	/// <summary>
+	///  使用toString将DateTime格式化
+	/// </summary>
+	public static string ToDate(this DateTime date){
+		return date.ToString("yyyy-MM-dd hh:mm:ss");
 	}
 }
