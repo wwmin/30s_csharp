@@ -37,6 +37,8 @@ dirs.Dump("IEnumerable<DirectoryInfo>");
 if (Directory.Exists(tempFilePath))
 {
 	//Directory.Delete(tempFilePath);//存在则删除
+}else{
+	Directory.CreateDirectory(tempFilePath);
 }
 //获取当前文件路径
 Directory.GetCurrentDirectory().Dump("GetCurrentDirectory");
