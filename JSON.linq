@@ -29,7 +29,7 @@ private void parseJSON(string json)
 	using (JsonDocument document = JsonDocument.Parse(json,options))
 	{
 		var visitorId = document.RootElement.GetProperty("visitorId");
-		visitorId.Dump();
+		visitorId.GetString().Dump();
 	}
 
 

@@ -5,6 +5,7 @@
 //切片
 var arr = Enumerable.Range(1, 10).ToArray();
 var all = arr[..];
+arr[^1].Dump();//取最后一个
 string.Join(',', all).Dump();
 var first3 = arr[0..3];//提取前3个
 string.Join(',', first3).Dump();

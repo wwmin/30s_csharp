@@ -16,7 +16,8 @@ async Task Main()
 
 	await Task.Run(async () =>
 	{
-		//单个长产消费模式
+		//单个生产消费模式
+		//有限容量channel
 		var channel = Channel.CreateBounded<string>(new BoundedChannelOptions(10)
 		{
 			FullMode = BoundedChannelFullMode.Wait
