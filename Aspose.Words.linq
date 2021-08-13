@@ -3,14 +3,55 @@
   <Namespace>Aspose.Words</Namespace>
   <Namespace>Aspose.Words.Drawing</Namespace>
   <Namespace>Aspose.Words.Tables</Namespace>
+  <Namespace>System.Drawing</Namespace>
 </Query>
 
 void Main()
 {
 	//CreateSimpleDocx();
-	CreateDocByTemplate();
+	//CreateDocByTemplate();
+	InsertNode();
 }
 public static string docPath = @"D:\temp\";
+private void InsertNode()
+{
+	string fileName = "test.docx";
+	Document doc = new Document(docPath + fileName);
+	DocumentBuilder builder = new DocumentBuilder(doc);
+
+	var device_invest_name = "test";
+	Paragraph pg = (Paragraph)doc.GetChildNodes(NodeType.Paragraph, true).FirstOrDefault(p => p.Range.Text.Contains(device_invest_name));
+	var font =  ((Run)pg.Runs.First()).Font;
+	var runs = pg.Runs;
+	builder.MoveTo(pg);
+	for (int i = 0; i < 3; i++)
+	{
+		var p = builder.InsertParagraph();
+		Run run = new Run(doc, "测试插入" + i);
+		//run.Font.Color= Color.Blue;
+		//run.Font.Style = style;
+		run.Font.Bidi = font.Bidi;
+		run.Font.Color=font.Color;
+		run.Font.Bold = font.Bold;
+		run.Font.BoldBi=font.BoldBi;
+		run.Font.Italic = font.Italic;
+		run.Font.ItalicBi= font.ItalicBi;
+		run.Font.NoProofing = font.NoProofing;
+		run.Font.Outline = font.Outline;
+		run.Font.Scaling = font.Scaling;
+		run.Font.Shadow = font.Shadow;
+		run.Font.Size=font.Size;
+		run.Font.SizeBi =font.SizeBi;
+		run.Font.SmallCaps= font.SmallCaps;
+		run.Font.Spacing = font.Spacing;
+		run.Font.Style=font.Style;
+		run.Font.TextEffect = font.TextEffect;
+		p.AppendChild(run);
+	}
+
+
+	doc.Save(docPath + DateTime.Now.Ticks + fileName);
+}
 //创建简单的word
 private void CreateSimpleDocx()
 {
@@ -28,19 +69,11 @@ private void CreateSimpleDocx()
 private void CreateDocByTemplate()
 {
 
-	string fileName = "综合能源规划设计报告模板";
+	string fileName = "test";
 	string extention = ".docx";
 	Document doc = new Document(docPath + fileName + extention);
 	Aspose.Words.DocumentBuilder builder = new DocumentBuilder(doc);
-	//Console.WriteLine(builder);
-	doc.Range.Replace(new Regex("{name}"), "wwmin");
 
-	doc.Range.Replace(new Regex("{dateTime}"), DateTime.Today.ToShortDateString());
-	//builder.MoveToDocumentEnd();
-	//builder.Writeln("Hello World");
-
-	//replaceImage(doc, builder);
-	replaceTable(doc);
 	doc.Save(docPath + fileName + DateTime.Now.Ticks + extention);
 	"done".Dump();
 }
@@ -73,10 +106,10 @@ private void replaceTable(Document doc)
 	var tables = doc.GetChildNodes(NodeType.Table, true).ToList();
 	var table1 = tables[1] as Table;
 	var r1 = table1.Rows[1];
-	var cell1=r1.Cells[1];
+	var cell1 = r1.Cells[1];
 	cell1.FirstParagraph.Remove();
 	Paragraph p = new Paragraph(doc);
-	p.AppendChild(new Run(doc,"测试11"));
+	p.AppendChild(new Run(doc, "测试11"));
 	cell1.AppendChild(p);
 }
 
@@ -85,6 +118,7 @@ private void replaceTable(Document doc)
 /// </summary>
 public static class AsposeWordHelper
 {
+	#region Text Methods
 	/// <summary>
 	/// 文字替换帮助
 	/// </summary>
@@ -107,6 +141,49 @@ public static class AsposeWordHelper
 	{
 		return new Regex(pattern);
 	}
+	#endregion
+	#region Paragraph Methods
+	/// <summary>
+	/// 向节点后面插入段落
+	/// </summary>
+	/// <param name="documentBuilder"></param>
+	/// <param name="refNode"></param>
+	/// <param name="text"></param>
+	public static void InsertParagraphAfter(this DocumentBuilder documentBuilder, Node refNode, string text)
+	{
+		var doc = documentBuilder.Document;
+		if (documentBuilder.CurrentNode != refNode)
+		{
+			documentBuilder.MoveTo(refNode);
+		}
+		var p = documentBuilder.InsertParagraph();
+		Run run = new Run(doc, text);
+		if (refNode is Paragraph)
+		{
+			var font = ((Run)((Paragraph)refNode).Runs.FirstOrDefault())?.Font;
+			if (font != null)
+			{
+				run.Font.Bidi = font.Bidi;
+				run.Font.Color = font.Color;
+				run.Font.Bold = font.Bold;
+				run.Font.BoldBi = font.BoldBi;
+				run.Font.Italic = font.Italic;
+				run.Font.ItalicBi = font.ItalicBi;
+				run.Font.NoProofing = font.NoProofing;
+				run.Font.Outline = font.Outline;
+				run.Font.Scaling = font.Scaling;
+				run.Font.Shadow = font.Shadow;
+				run.Font.Size = font.Size;
+				run.Font.SizeBi = font.SizeBi;
+				run.Font.SmallCaps = font.SmallCaps;
+				run.Font.Spacing = font.Spacing;
+				run.Font.Style = font.Style;
+				run.Font.TextEffect = font.TextEffect;
+			}
+		}
+		p.AppendChild(run);
+	}
+	#endregion
 	#region Table Methods
 	/// <summary>
 	/// 获取所有table
@@ -206,6 +283,43 @@ public static class AsposeWordHelper
 		{
 			rf.Text = text;
 		}
+	}
+	#endregion
+	#region Picture Methods
+	/// <summary>
+	/// 在特定paragraph下添加图片
+	/// </summary>
+	/// <param name="paragraph">word段落</param>
+	/// <param name="imagePath">图片全路径</param>
+	/// <param name="width">图片宽</param>
+	/// <param name="height">图片高</param>
+	public static void AddImage(this Paragraph paragraph, string imagePath, int width = 100, int height = 100)
+	{
+		Document doc = (Document)paragraph.Document;
+		Shape shape = new Shape(doc, ShapeType.Image);
+		shape.ImageData.SetImage(imagePath);
+		shape.Width = width;
+		shape.Height = height;
+		paragraph.AppendChild(shape);
+	}
+	/// <summary>
+	/// 图片替换
+	/// </summary>
+	/// <param name="doc"></param>
+	/// <param name="imageAlternativeText">图片中的替换文字,作为识别该图片用</param>
+	/// <param name="imagePath">图片路径</param>
+	/// <param name="documentBuilder"></param>
+	/// <returns></returns>
+	public static bool ReplaceImage(this Document doc, string imageAlternativeText, string imagePath, DocumentBuilder documentBuilder = null)
+	{
+		if (documentBuilder == null) documentBuilder = new DocumentBuilder(doc);
+		var shapes = doc.GetChildNodes(NodeType.Shape, true).Select(s => (Shape)s).ToList();
+		var imageShape = shapes.FirstOrDefault(s => s.AlternativeText == imageAlternativeText);
+		if (imageShape == null) return false;
+		documentBuilder.MoveTo(imageShape);
+		documentBuilder.InsertImage(imagePath, imageShape.Width, imageShape.Height);
+		imageShape.ParentNode.RemoveChild(imageShape);
+		return true;
 	}
 	#endregion
 }
