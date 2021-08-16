@@ -10,7 +10,8 @@ void Main()
 {
 	//CreateSimpleDocx();
 	//CreateDocByTemplate();
-	InsertNode();
+	//InsertNode();
+	AsposeWordHelper.GetAncestorInBody(
 }
 public static string docPath = @"D:\temp\";
 private void InsertNode()
@@ -227,6 +228,11 @@ public static class AsposeWordHelper
 	public static Row CloneLastRow(this Table table)
 	{
 		Row cloneRow = (Row)table.LastRow.Clone(true);
+		//remove all content from the cloned row's cells. This makes the row ready for new content to be inserted into.
+		foreach (Cell cell in cloneRow.Cells)
+		{
+			cell.RemoveAllChildren();
+		}
 		return cloneRow;
 	}
 
@@ -320,6 +326,15 @@ public static class AsposeWordHelper
 		documentBuilder.InsertImage(imagePath, imageShape.Width, imageShape.Height);
 		imageShape.ParentNode.RemoveChild(imageShape);
 		return true;
+	}
+	#endregion
+	#region Node Methods
+	public static Node GetAncestorInBody(Node startNode){
+		while (startNode.ParentNode.NodeType!= NodeType.Body)
+		{
+			startNode = startNode.ParentNode;
+		}
+		return startNode;
 	}
 	#endregion
 }
