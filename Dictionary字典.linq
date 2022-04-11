@@ -94,7 +94,7 @@ public class DictionaryWrapper<TKey, TValue>
 						OnValueChanged(this, new ValueChangedEventArgs<TKey, TValue>(key, value, _dict[key]));
 					}
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (_dict.Count() > 0)
 				{
 					Console.WriteLine($"检测值变更或触发值变更事件,发生未知异常{ex}");
 				}

@@ -334,6 +334,20 @@ async Task Main()
 		}
 	}
 	#endregion
+
+	{
+		//WaitAsync on Task
+		//可以更轻松地等待异步任务执行, 如果超时会抛出 “TimeoutException”
+		try
+		{
+			Task operationTask = DoSomethingLongAsync();
+			await operationTask.WaitAsync(TimeSpan.FromSeconds(5));
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message.ToString());
+		}
+	}
 }
 
 public async Task TestTaskMore()
@@ -406,4 +420,9 @@ public static class Util
 	}
 }
 
-// You can define other methods, fields, classes and namespaces here
+async Task DoSomethingLongAsync()
+{
+	Console.WriteLine("DoSomethingLongAsync start");
+	await Task.Delay(TimeSpan.FromSeconds(10));
+	Console.WriteLine("DoSomethingLongAsync ended.");
+}

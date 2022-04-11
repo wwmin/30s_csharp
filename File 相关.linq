@@ -2,6 +2,7 @@
   <Output>DataGrids</Output>
   <Namespace>System.Threading.Tasks</Namespace>
   <Namespace>System.Security.Cryptography</Namespace>
+  <Namespace>Microsoft.Win32.SafeHandles</Namespace>
 </Query>
 
 //文件操作
@@ -236,6 +237,25 @@ using (FileStream fs = new FileStream(tempFilePath + "/test.txt", FileMode.Open,
 //文件帮助类
 public static class FileUtil
 {
+	//写入文件内容，线程安全
+	public static async Task WriteFileWithRandomAccess(string path,string content){
+		using SafeFileHandle handle = File.OpenHandle(path,access:FileAccess.Write);
+		//Write to file
+		byte[] strBytes = Encoding.UTF8.GetBytes(content);
+		ReadOnlyMemory<byte> buffer1 = new(strBytes);
+		await System.IO.RandomAccess.WriteAsync(handle,buffer1,0);
+	}
+	//读取文件内容，线程安全
+	public static async Task<string> ReadFileWithRandomAccess(string path){
+		using SafeFileHandle handle = File.OpenHandle(path,access:FileAccess.Read);
+		//Get file length
+		long length = RandomAccess.GetLength(handle);
+		
+		//Read from file
+		Memory<byte> buffer = new(new byte[length]);
+		await RandomAccess.ReadAsync(handle,buffer,0);
+		return Encoding.UTF8.GetString(buffer.ToArray());
+	}
 	/// <summary>
 	/// 以文件流的形式复制大文件
 	/// </summary>

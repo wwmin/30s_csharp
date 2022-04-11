@@ -1,46 +1,73 @@
-<Query Kind="Statements">
+<Query Kind="Program">
   <Output>DataGrids</Output>
+  <Namespace>System.Text.Json</Namespace>
 </Query>
 
-//SortedList 参考:https://www.koderhq.com/tutorial/csharp/sortedlist/
-Dictionary<string, string> dics = new Dictionary<string, string>();
-dics.Add("3", "c");
-dics.Add("2", "b");
-dics.Add("1", "a");
-dics.Dump("Dictionary");
-SortedDictionary<string, string> sd = new SortedDictionary<string, string>();
-foreach (var dic in dics)
+void Main()
 {
-	sd.Add(dic.Key, dic.Value);
+	//SortedList 参考:https://www.koderhq.com/tutorial/csharp/sortedlist/
+	//Dictionary
+	Dictionary<string, string> dics = new Dictionary<string, string>();
+	dics.Add("3", "c");
+	dics.Add("2", "b");
+	dics.Add("1", "a");
+	dics.Dump("Dictionary");
+	//SortedDictionary
+	SortedDictionary<string, string> sd = new SortedDictionary<string, string>();
+	foreach (var dic in dics)
+	{
+		sd.Add(dic.Key, dic.Value);
+	}
+	sd.Dump("SortedDictionary");
+
+
+	//Hashtable
+	Hashtable ht = new Hashtable();
+	ht.Add(1, "1");
+	ht.Add(2, "2");
+	ht.Add(3, "3");
+	foreach (DictionaryEntry h in ht)
+	{
+		(h.Key + ":" + h.Value).Dump("HashTable:item");
+	}
+
+	//SortedList
+	SortedList sl = new SortedList();
+	sl.Add(2, "2");
+	sl.Add(1, "1");
+	foreach (DictionaryEntry item in sl)
+	{
+		(item.Key + ":" + item.Value).Dump("SortedList:DictionaryEntry");
+	}
+	SortedList<int[], int> sil = new SortedList<int[], int>(new MyComparer());
+
+	sil.Add(new int[] { 1, 2 }, 1);
+	sil.Add(new int[] { 2, 1 }, 3);
+	sil.Keys.ToList().Select(a => string.Join(",", a)).Dump("SortedList<int[], int>"); ;
+	introspectiveSort<int[]>(sil.Keys, sil.Comparer.Compare);
+	//List
+	List<int> li = new List<int>();
+	li.Add(1);
+	li.Add(2);
+	li.Dump(typeof(List<int>).ToString());
+	li.TryGetFirst(l => l > 0, out bool found).Dump("trygetfirst:li");
+	li.Sort((a, b) => b - a);
+	//string.Join(",",li).Dump(typeof(List<int>).ToString());
+
+	//IOrderedEnumerable
+	IOrderedEnumerable<int> sortedInt = li.OrderBy(l => l);
+
+	sortedInt.TryGetFirst(l => l > 0, out bool f).Dump("OrderedEnumerable<int>");
 }
-sd.Dump("SortedDictionary");
 
-SortedList sl = new SortedList();
-
-Hashtable ht = new Hashtable();
-ht.Add(1,"1");
-ht.Add(2,"2");
-ht.Add(3,"3");
-foreach (DictionaryEntry h in ht)
+public void introspectiveSort<T>(IList<T> keys, Comparison<T> comparer)
 {
-	(h.Key+":"+h.Value).Dump("HashTable:item");
+	if (keys.Count() > 1)
+	{
+		JsonSerializer.Serialize(keys).Dump();
+	}
 }
 
-sl.Add(2, "2");
-sl.Add(1, "1");
-foreach (DictionaryEntry item in sl)
-{
-	(item.Key + ":" + item.Value).Dump("SortedList:DictionaryEntry");
-}
-List<int> li=new List<int>();
-li.Add(1);
-li.Add(2);
-li.Dump(typeof(List<int>).ToString());
-li.TryGetFirst(l => l>0,out bool found).Dump("trygetfirst:li");
-
-IOrderedEnumerable<int> sortedInt = li.OrderBy(l => l);
-
-sortedInt.TryGetFirst(l => l>0,out bool f).Dump("OrderedEnumerable<int>");
 /// <summary>Utils</summary>
 public static class Utils
 {
@@ -64,4 +91,10 @@ public static class Utils
 		return default;
 #nullable enable
 	}
+}
+
+//实现自定义比较器
+public class MyComparer : IComparer<int[]>
+{
+	public int Compare(int[]? x, int[]? y) => y?[0] > x?[0] ? -1 : 1;
 }

@@ -2,6 +2,8 @@
   <Namespace>System.Threading.Tasks</Namespace>
 </Query>
 
+//Lock相关
+//spinLock
 void Main()
 {
 	{
@@ -54,4 +56,4 @@ private void interlockedDecrement(ref int num, string name)
 	Interlocked.Decrement(ref num);
 	num.Dump(name);
 }
-// You can define other methods, fields, classes and namespaces here
+//

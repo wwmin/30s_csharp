@@ -4,6 +4,10 @@
 
 void Main()
 {
+	//查看当前线程ID
+	Environment.ProcessId.Dump();
+	//查看当前线程路径
+	Environment.ProcessPath.Dump();
 	//获取所有进程
 	void GetAllProcesses()
 	{

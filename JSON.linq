@@ -1,6 +1,7 @@
 <Query Kind="Program">
   <Namespace>System.Web</Namespace>
   <Namespace>System.Text.Json</Namespace>
+  <Namespace>System.Text.Unicode</Namespace>
 </Query>
 
 void Main()
@@ -15,9 +16,25 @@ void Main()
 	};
 	var uaInfo = JsonSerializer.Deserialize<UAInfo>(a, option);
 	a.Dump();
-	uaInfo.Dump();
+	//uaInfo.Dump();
 	
 	parseJSON(a);
+
+	//转换汉字及转义字符 
+	// 使用此可将汉字及转义字符都正确输出 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+	// 使用此只能正确转义汉字             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
+	string sa = "王为民->wwmin";
+	var s = JsonSerializer.Serialize(sa, new JsonSerializerOptions() {
+		Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
+	});
+	s.Dump();//"王为民-\u003Ewwmin"
+	
+	var so = new { name = "王为民->wwmin" };
+	var so2s = JsonSerializer.Serialize(so, new JsonSerializerOptions() {
+		Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+	});
+	so2s.Dump();//{"name":"王为民->wwmin"}
+	
 }
 
 private void parseJSON(string json)

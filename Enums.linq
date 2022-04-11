@@ -9,7 +9,8 @@ void Main()
 	{
 		//根据id获取enum key
 		Enum.Parse(typeof(RoleEnum), "1").Dump();
-
+		((RoleEnum)Enum.Parse(typeof(RoleEnum),"1")).GetDescription().Dump();
+		
 		var allItems = EnumHelper.GetAllItems(typeof(RoleEnum));
 		string.Join(Environment.NewLine, allItems.Select(i => (string)i.Text)).Dump("RoleEnumName");
 		RoleEnum.超级管理员.GetDescription().Dump();
